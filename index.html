@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Signing into MySsemble...</title></head>
+<body style="background:#0b0f19;color:#e2e8f0;font-family:sans-serif;display:grid;place-items:center;height:100vh;margin:0">
+<p id="msg">Completing secure Google sign-in...</p>
+<script>
+  const p = new URLSearchParams(location.search);
+  const code = p.get("code"), state = p.get("state"), err = p.get("error");
+  try {
+    const pad = (s) => s.replace(/-/g,"+").replace(/_/g,"/") + "===".slice((s.length + 3) % 4);
+    const info = JSON.parse(atob(pad(state || "")));
+    const u = new URL(info.origin);
+    const ok = u.protocol === "https:" && (u.hostname.endsWith(".trycloudflare.com") || u.hostname.endsWith(".ngrok-free.app")) || u.hostname === "localhost";
+    if (!ok) throw new Error("Blocked redirect host");
+    const q = new URLSearchParams();
+    if (code) q.set("code", code);
+    if (state) q.set("state", state);
+    if (err) q.set("error", err);
+    location.replace(`${u.origin}/auth/callback?${q.toString()}`);
+  } catch (e) {
+    document.getElementById("msg").textContent = "Sign-in relay error: " + e.message;
+  }
+</script></body></html>
